@@ -1,21 +1,26 @@
+# .github/workflows/deploy.yml
 name: Deploy to S3
 
 on:
   push:
     branches:
-      - main  # or 'master' if that's your default branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v3
 
       - name: Install AWS CLI
         run: |
+          sudo apt-get update
           sudo apt-get install -y awscli
+
+      - name: Show directory structure (for debugging)
+        run: ls -la
 
       - name: Deploy to S3
         env:
@@ -25,6 +30,7 @@ jobs:
           S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
         run: |
           aws s3 sync . s3://$S3_BUCKET_NAME \
-            --exclude ".git/*" \
             --delete \
+            --exclude ".git/*" \
+            --exclude ".github/*" \
             --acl public-read
