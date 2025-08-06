@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sendora - File Sharing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --bg: #f8fafc;
+      --container-bg: #fff;
+      --border: #e5e7eb;
+      --text: #1e293b;
+      --muted: #64748b;
+      --radius: 16px;
+      --shadow: 0 4px 24px 0 rgba(30, 41, 59, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: var(--container-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 370px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-icon svg {
+      width: 22px;
+      height: 22px;
+      color: #fff;
+    }
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: -1px;
+    }
+    .upload-box {
+      width: 100%;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      background: #f1f5f9;
+      padding: 2.2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      color: var(--muted);
+      font-size: 1rem;
+      position: relative;
+    }
+    .upload-box.dragover {
+      border-color: var(--primary);
+      background: #e0e7ff;
+      color: var(--primary);
+    }
+    .upload-box input[type="file"] {
+      display: none;
+    }
+    .file-name {
+      margin-top: 0.7rem;
+      color: var(--primary);
+      font-weight: 500;
+      font-size: 1rem;
+      word-break: break-all;
+    }
+    .generate-btn {
+      width: 100%;
+      padding: 0.9rem 0;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      opacity: 1;
+    }
+    .generate-btn:disabled {
+      background: var(--border);
+      color: var(--muted);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .link-section {
+      width: 100%;
+      margin-top: 0.5rem;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .generated-link {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      color: var(--primary);
+      word-break: break-all;
+      text-align: center;
+      width: 100%;
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.98rem;
+      margin-top: 0.2rem;
+      transition: color 0.2s;
+    }
+    .copy-btn:active {
+      color: var(--primary-light);
+    }
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+        max-width: 98vw;
+      }
+      h1 {
+        font-size: 1.2rem;
+      }
+      .upload-box {
+        padding: 1.2rem 0.5rem;
+        font-size: 0.98rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <span class="logo-icon">
+        <!-- Simple paper plane SVG icon -->
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 20L21 12L3 4V10L17 12L3 14V20Z" fill="currentColor"/>
+        </svg>
+      </span>
+      <h1>Sendora</h1>
+    </div>
+    <label class="upload-box" id="uploadBox">
+      <input type="file" id="fileInput" />
+      <span id="uploadText">Drag & drop or <u>click to select</u> a file</span>
+      <div class="file-name" id="fileName" style="display:none;"></div>
+    </label>
+    <button class="generate-btn" id="generateBtn" disabled>Generate Link</button>
+    <div class="link-section" id="linkSection">
+      <div class="generated-link" id="generatedLink"></div>
+      <button class="copy-btn" id="copyBtn">Copy Link</button>
+    </div>
+  </div>
+  <script>
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const generateBtn = document.getElementById('generateBtn');
+    const linkSection = document.getElementById('linkSection');
+    const generatedLink = document.getElementById('generatedLink');
+    const copyBtn = document.getElementById('copyBtn');
+    let selectedFile = null;
+
+    // Drag & drop events
+    uploadBox.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadBox.classList.add('dragover');
+    });
+    uploadBox.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      uploadBox.classList.remove('dragover');
+    });
+    uploadBox.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadBox.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileChange();
+      }
+    });
+    // Click to select
+    uploadBox.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileChange);
+
+    function handleFileChange() {
+      if (fileInput.files && fileInput.files[0]) {
+        selectedFile = fileInput.files[0];
+        fileName.textContent = selectedFile.name;
+        fileName.style.display = 'block';
+        generateBtn.disabled = false;
+        document.getElementById('uploadText').style.display = 'none';
+        linkSection.style.display = 'none';
+      } else {
+        selectedFile = null;
+        fileName.style.display = 'none';
+        generateBtn.disabled = true;
+        document.getElementById('uploadText').style.display = 'inline';
+      }
+    }
+
+    generateBtn.addEventListener('click', () => {
+      // Mock link generation
+      const mockLink = `https://sendora.mock/link/${Math.random().toString(36).substr(2, 8)}`;
+      generatedLink.textContent = mockLink;
+      linkSection.style.display = 'flex';
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const text = generatedLink.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy Link';
+        }, 1200);
+      });
+    });
+  </script>
+</body>
+</html>
